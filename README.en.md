@@ -6,6 +6,8 @@
 
 [中文](./README.md)
 
+Current stable release: [v1.0.0](https://github.com/413162826/kevinsu-skills/releases/tag/v1.0.0) · [Changelog](./CHANGELOG.md)
+
 </div>
 
 These are field-tested WeChat Official Account Skills that I use myself.
@@ -21,7 +23,17 @@ They call only the official WeChat API, never control a browser, and never publi
 
 ## 📦 Install
 
-In Codex, Claude Code, or another Agent Skills-compatible tool, say:
+Codex users with `npx` available can install both Skills with one command:
+
+```powershell
+npx -y skills@latest add 413162826/kevinsu-skills --skill wechat-article-api wechat-image-api --agent codex -g -y
+```
+
+If `npx` is unavailable, install the latest Node.js first (the current CLI requires Node.js 22.20 or later).
+
+The command installs only the two listed Skills. Skills added to this repository later are not installed automatically. To install only one, remove the other name from the command.
+
+Alternatively, tell Codex, Claude Code, or another Agent Skills-compatible tool:
 
 ```text
 Install these two Skills:
@@ -31,6 +43,16 @@ https://github.com/413162826/kevinsu-skills/tree/main/wechat-image-api
 ```
 
 The Agent handles the download and install path. Start a new task after installation.
+
+## ♻️ Update
+
+After installing with the command above, update both Skills with:
+
+```powershell
+npx -y skills@latest update wechat-article-api wechat-image-api -g -y
+```
+
+Start a new task after updating. To update only one Skill, remove the other name from the command. Updating does not modify the WeChat AppID or AppSecret stored separately on your machine.
 
 ## 🚀 Use
 
@@ -86,4 +108,4 @@ Uploaded covers and image-post images consume permanent-material quota in WeChat
 - Website: [moonsea.kevinsu.xyz](https://moonsea.kevinsu.xyz/)
 - GitHub: [413162826](https://github.com/413162826)
 
-[MIT License](./LICENSE) · [Security](./SECURITY.md) · [Contributing](./CONTRIBUTING.md)
+[MIT License](./LICENSE) · [Changelog](./CHANGELOG.md) · [Security](./SECURITY.md) · [Contributing](./CONTRIBUTING.md)
