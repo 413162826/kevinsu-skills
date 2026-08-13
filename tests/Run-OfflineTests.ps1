@@ -144,6 +144,39 @@ Assert-True ($articleHash -eq $imageHash) '两个 Skill 的 WeChatOfficialApi.ps
 
 # 40164 必须告诉用户真实出口 IP、白名单位置，并明确不能转用浏览器/RPA。
 $module = Import-Module $articleModule -Force -PassThru
+$multipartFixture = Join-Path ([IO.Path]::GetTempPath()) ("kevinsu-skills-multipart-$([Guid]::NewGuid().ToString('N')).png")
+try {
+    [IO.File]::WriteAllBytes($multipartFixture, [byte[]](1, 2, 3))
+    & $module {
+        param([string]$FixturePath)
+
+        $multipart = New-WeChatMultipartFormData -File (Get-Item -LiteralPath $FixturePath) -ContentType 'image/png'
+        try {
+            $contentType = $multipart.Headers.ContentType.ToString()
+            $wire = [Text.Encoding]::UTF8.GetString($multipart.ReadAsByteArrayAsync().GetAwaiter().GetResult())
+            if ($contentType -match 'boundary="') {
+                throw 'multipart 顶层 boundary 不应带引号。'
+            }
+            if ($wire -notmatch 'Content-Disposition: form-data; name="media"; filename="upload\.png"') {
+                throw 'multipart media 部件未使用微信兼容的带引号 Content-Disposition。'
+            }
+            if ($wire -match 'filename\*=') {
+                throw 'multipart media 部件不应包含微信无法识别的 filename*=。'
+            }
+            if ($wire -notmatch 'Content-Disposition:[^\r\n]+\r?\nContent-Type: image/png') {
+                throw 'multipart media 部件应先发送 Content-Disposition，再发送 Content-Type。'
+            }
+        }
+        finally {
+            $multipart.Dispose()
+        }
+    } $multipartFixture
+}
+finally {
+    if (Test-Path -LiteralPath $multipartFixture -PathType Leaf) {
+        Remove-Item -LiteralPath $multipartFixture -Force
+    }
+}
 Assert-ThrowsLike -ScriptBlock {
     & $module {
         Assert-WeChatApiResponse -Response ([pscustomobject]@{
