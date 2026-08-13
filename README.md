@@ -6,6 +6,8 @@
 
 [English](./README.en.md)
 
+当前稳定版本：[v1.0.0](https://github.com/413162826/kevinsu-skills/releases/tag/v1.0.0) · [更新记录](./CHANGELOG.md)
+
 </div>
 
 这是我自己正在使用、已经真实跑通的微信公众号 Skills。
@@ -21,7 +23,17 @@
 
 ## 📦 安装
 
-在 Codex、Claude Code 等支持 Agent Skills 的工具里，直接说：
+Codex 用户且本机可以使用 `npx` 时，一条命令安装两个 Skill：
+
+```powershell
+npx -y skills@latest add 413162826/kevinsu-skills --skill wechat-article-api wechat-image-api --agent codex -g -y
+```
+
+没有 `npx` 时，先安装最新版 Node.js（当前 CLI 要求 Node.js 22.20 或更高版本）。
+
+命令只安装列出的两个 Skill；以后仓库新增 Skill 不会被自动安装。只需要其中一个时，从命令中删掉另一个名称即可。
+
+也可以在 Codex、Claude Code 等支持 Agent Skills 的工具里直接说：
 
 ```text
 帮我安装这两个 Skill：
@@ -31,6 +43,16 @@ https://github.com/413162826/kevinsu-skills/tree/main/wechat-image-api
 ```
 
 Agent 会自动安装到正确目录，不用你操心下载和路径。安装后新开一个任务即可使用。
+
+## ♻️ 更新
+
+通过上面的命令安装后，后续这样更新两个 Skill：
+
+```powershell
+npx -y skills@latest update wechat-article-api wechat-image-api -g -y
+```
+
+更新后新开一个任务即可使用新版。只更新其中一个时，从命令中删掉另一个名称即可。更新不会改动保存在本机独立目录中的公众号 AppID 和 AppSecret。
 
 ## 🚀 怎么用
 
@@ -86,4 +108,4 @@ AppSecret 只在你自己的终端中录入，不要发到聊天、Issue 或截�
 - 网站：[moonsea.kevinsu.xyz](https://moonsea.kevinsu.xyz/)
 - GitHub：[413162826](https://github.com/413162826)
 
-[MIT License](./LICENSE) · [安全说明](./SECURITY.md) · [参与贡献](./CONTRIBUTING.md)
+[MIT License](./LICENSE) · [更新记录](./CHANGELOG.md) · [安全说明](./SECURITY.md) · [参与贡献](./CONTRIBUTING.md)
