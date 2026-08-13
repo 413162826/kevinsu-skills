@@ -1,0 +1,53 @@
+# Operating systems and editors
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.code-workspace
+*~
+*.swp
+
+# Local runtime and test output
+*.log
+*.tmp
+tmp/
+temp/
+coverage/
+TestResults/
+
+# Credentials and private context
+.env
+.env.*
+!.env.example
+auth.json
+common-context.txt
+secrets/
+.sandbox-secrets/
+private/
+*.dpapi.json
+*.pem
+*.key
+*.pfx
+*.p12
+*.cer
+*.crt
+
+# Codex/browser/session data must never enter this repository
+sessions/
+archived_sessions/
+history/
+memories/
+attachments/
+browser/
+computer-use/
+**/cookie-skill/data/profile/
+*.sqlite
+*.sqlite3
+*.db
+
+# Local WeChat execution checkpoints and receipts
+**/wechat-article-api-state.json
+**/wechat-article-api-receipt.json
+**/wechat-image-api-state.json
+**/wechat-image-api-receipt.json

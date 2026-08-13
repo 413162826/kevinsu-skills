@@ -1,0 +1,4 @@
+interface:
+  display_name: "微信公众号贴图 API"
+  short_description: "通过微信官方 API 安全创建并回读验收图片消息草稿"
+  default_prompt: "使用 $wechat-image-api 通过微信官方 API 创建并回读验收一篇公众号图片消息草稿。"

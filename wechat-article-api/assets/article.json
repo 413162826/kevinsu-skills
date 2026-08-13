@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "action": "save_draft_only",
+  "account": "YOUR_WECHAT_ACCOUNT_NAME",
+  "title": "文章标题",
+  "author": "",
+  "digest": "文章摘要",
+  "contentSourceUrl": "",
+  "bodyHtml": "body.html",
+  "cover": "cover.png",
+  "bodyImages": [
+    {
+      "marker": "section-01",
+      "path": "images/section-01.png"
+    }
+  ],
+  "needOpenComment": 1,
+  "onlyFansCanComment": 0
+}

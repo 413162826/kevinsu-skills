@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "action": "save_draft_only",
+  "account": "示例公众号",
+  "title": "离线校验示例文章",
+  "author": "",
+  "digest": "这是一份不连接微信 API 的合成测试素材。",
+  "contentSourceUrl": "",
+  "bodyHtml": "body.html",
+  "cover": "cover.png",
+  "bodyImages": [
+    {
+      "marker": "section-01",
+      "path": "images/section-01.png"
+    }
+  ],
+  "needOpenComment": 1,
+  "onlyFansCanComment": 0
+}

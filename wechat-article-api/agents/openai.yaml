@@ -1,0 +1,4 @@
+interface:
+  display_name: "微信公众号文章 API"
+  short_description: "通过微信官方 API 安全创建并回读验收图文文章草稿"
+  default_prompt: "使用 $wechat-article-api 校验成品文章素材包，通过微信官方 API 创建文章草稿并回读验收；不要发布或群发。"

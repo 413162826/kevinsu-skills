@@ -1,0 +1,30 @@
+title = "kevinsu-skills secret scanning"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "wechat-app-secret-assignment"
+description = "Potential WeChat AppSecret assigned in source"
+regex = '''(?i)(app[_-]?secret|secret)\s*[:=]\s*["'][0-9a-z_-]{20,}["']'''
+keywords = ["appsecret", "app_secret", "secret"]
+
+[[rules]]
+id = "wechat-live-app-id"
+description = "Potential live WeChat AppID committed outside placeholders"
+regex = '''\bwx[0-9A-Za-z]{16}\b'''
+keywords = ["wx"]
+
+[[rules]]
+id = "private-codex-material"
+description = "Reference to private Codex context or browser profile"
+regex = '''(?i)(common-context\.txt|auth\.json|cookie-skill[\\/]data[\\/]profile)'''
+keywords = ["common-context", "auth.json", "cookie-skill"]
+
+[[rules.allowlists]]
+description = "The deny-list and gitignore must name the files they block."
+condition = "OR"
+paths = [
+  '''(^|/)\.gitignore$''',
+  '''(^|/)tools/Test-PublicBoundary\.ps1$'''
+]

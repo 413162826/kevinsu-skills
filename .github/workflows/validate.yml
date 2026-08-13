@@ -1,0 +1,59 @@
+name: validate
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-validation:
+    name: Offline validation
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install validation dependency
+        shell: pwsh
+        run: python -m pip install --disable-pip-version-check "PyYAML==6.0.2"
+
+      - name: Check exact public boundary
+        shell: pwsh
+        run: ./tools/Test-PublicBoundary.ps1
+
+      - name: Validate Skill metadata
+        shell: pwsh
+        run: |
+          python ./tools/quick_validate.py ./wechat-article-api
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python ./tools/quick_validate.py ./wechat-image-api
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Run offline contract and security tests
+        shell: pwsh
+        run: ./tests/Run-OfflineTests.ps1
+
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Scan repository with Gitleaks
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: 'false'
