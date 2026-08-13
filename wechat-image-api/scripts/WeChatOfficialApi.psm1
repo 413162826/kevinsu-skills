@@ -200,6 +200,39 @@ function Invoke-WeChatJsonApi {
     return Assert-WeChatApiResponse -Response $response -Operation $Operation
 }
 
+function New-WeChatMultipartFormData {
+    param(
+        [Parameter(Mandatory)][IO.FileInfo]$File,
+        [Parameter(Mandatory)][string]$ContentType
+    )
+
+    $boundary = '------------------------' + [Guid]::NewGuid().ToString('N')
+    $multipart = [Net.Http.MultipartFormDataContent]::new($boundary)
+    try {
+        # MultipartFormDataContent 默认会给 boundary 加引号；微信旧解析器只稳定接受 curl 风格的裸 boundary。
+        $boundaryParameter = @($multipart.Headers.ContentType.Parameters | Where-Object Name -eq 'boundary')[0]
+        $boundaryParameter.Value = $boundary
+
+        $stream = $File.OpenRead()
+        $fileContent = [Net.Http.StreamContent]::new($stream)
+
+        # 显式生成 curl 兼容的 Content-Disposition。HttpClient 的三参数 Add 会去掉字段引号并
+        # 添加 filename*=，微信会因此把已经发送的文件误判为 41005 media data missing。
+        $disposition = [Net.Http.Headers.ContentDispositionHeaderValue]::new('form-data')
+        $disposition.Name = '"media"'
+        $disposition.FileName = '"upload' + $File.Extension.ToLowerInvariant() + '"'
+        $disposition.FileNameStar = $null
+        $fileContent.Headers.ContentDisposition = $disposition
+        $fileContent.Headers.ContentType = [Net.Http.Headers.MediaTypeHeaderValue]::new($ContentType)
+        $multipart.Add($fileContent)
+        return ,$multipart
+    }
+    catch {
+        $multipart.Dispose()
+        throw
+    }
+}
+
 function Invoke-WeChatMultipartUpload {
     param(
         [Parameter(Mandatory)][string]$Uri,
@@ -220,17 +253,11 @@ function Invoke-WeChatMultipartUpload {
 
     $client = $null
     $multipart = $null
-    $stream = $null
-    $fileContent = $null
     $httpResponse = $null
     try {
         $client = [Net.Http.HttpClient]::new()
         $client.Timeout = [TimeSpan]::FromSeconds(120)
-        $multipart = [Net.Http.MultipartFormDataContent]::new()
-        $stream = $File.OpenRead()
-        $fileContent = [Net.Http.StreamContent]::new($stream)
-        $fileContent.Headers.ContentType = [Net.Http.Headers.MediaTypeHeaderValue]::new($contentTypes[$extension])
-        $multipart.Add($fileContent, 'media', $File.Name)
+        $multipart = New-WeChatMultipartFormData -File $File -ContentType $contentTypes[$extension]
         $httpResponse = $client.PostAsync($Uri, $multipart).GetAwaiter().GetResult()
         $responseText = $httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult()
         if (-not $httpResponse.IsSuccessStatusCode) {
@@ -260,8 +287,6 @@ function Invoke-WeChatMultipartUpload {
     finally {
         if ($httpResponse) { $httpResponse.Dispose() }
         if ($multipart) { $multipart.Dispose() }
-        elseif ($fileContent) { $fileContent.Dispose() }
-        elseif ($stream) { $stream.Dispose() }
         if ($client) { $client.Dispose() }
     }
 }
