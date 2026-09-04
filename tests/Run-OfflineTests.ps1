@@ -222,4 +222,6 @@ Assert-ThrowsLike -ScriptBlock {
     } | Out-Null
 } -ExpectedFragments @('40164', '203.0.113.42', 'IP 白名单', '禁止改走浏览器或 RPA') -Because '40164 指引必须完整'
 
+# 上面的预期失败用例会把 Python 的退出码 1 留在 LASTEXITCODE；断言全部通过后显式归零，避免 CI 误判。
+$global:LASTEXITCODE = 0
 "离线测试通过：AST、安装器、公众号素材契约与 API 边界、小红书 ZIP 校验与官方 Skill 来源门禁均符合预期。"
