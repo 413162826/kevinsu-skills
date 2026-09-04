@@ -1,6 +1,13 @@
 # 更新记录
 
-本仓库中的微信公众号 Skills 共用一个版本号，并遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
+本仓库中的 Skills 共用一个版本号，并遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
+
+## [未发布]
+
+### 新增
+
+- `kevin-xhs-minitool-publisher`：把网页或交互项目改造成小红书 Builder Hub 离线小工具，完成关键需求确认、双尺寸手机预览、当期官方 Skill 审计、合规 ZIP、上传与审核状态回读。
+- 小红书官方 Skill 安全下载器与本地 ZIP 校验器；发布前要求官方审计和本地审计同时通过。
 
 ## [1.0.0] - 2026-08-13
 

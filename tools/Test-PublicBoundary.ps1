@@ -29,14 +29,19 @@ foreach ($entry in @($manifest.allowedFiles)) {
 
 $actualFiles = @(
     Get-ChildItem -LiteralPath $root -Recurse -File -Force |
-        Where-Object { $_.FullName -notlike (Join-Path $root '.git\*') } |
+        Where-Object {
+            $relative = $_.FullName.Substring($root.Length + 1)
+            $relative -ne '.git' -and -not $relative.StartsWith('.git\', [StringComparison]::OrdinalIgnoreCase)
+        } |
         ForEach-Object { $_.FullName.Substring($root.Length + 1).Replace('\', '/') } |
         Sort-Object
 )
 $reparsePoints = @(
     Get-ChildItem -LiteralPath $root -Recurse -Force |
         Where-Object {
-            $_.FullName -notlike (Join-Path $root '.git\*') -and
+            $relative = $_.FullName.Substring($root.Length + 1)
+            $relative -ne '.git' -and
+            -not $relative.StartsWith('.git\', [StringComparison]::OrdinalIgnoreCase) -and
             ($_.Attributes -band [IO.FileAttributes]::ReparsePoint)
         } |
         ForEach-Object { $_.FullName.Substring($root.Length + 1).Replace('\', '/') }

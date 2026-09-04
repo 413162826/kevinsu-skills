@@ -1,0 +1,5 @@
+interface:
+  display_name: "小红书小工具发布"
+  short_description: "把现有项目改造成小红书离线小工具并完成预览、上传与审核回读"
+  brand_color: "#B42318"
+  default_prompt: "使用 $kevin-xhs-minitool-publisher 把当前项目改造成小红书小工具，确认预览后上传 Builder Hub。"

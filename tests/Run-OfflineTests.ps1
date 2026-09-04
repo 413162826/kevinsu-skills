@@ -54,6 +54,13 @@ foreach ($file in Get-ChildItem -LiteralPath $root -Recurse -File -Include '*.ps
 }
 Assert-True ($parseFailures.Count -eq 0) "PowerShell AST 语法检查失败：$([Environment]::NewLine)$($parseFailures -join [Environment]::NewLine)"
 
+# 所有公开 Skill 都必须通过统一元数据校验，避免 CI 清单新增 Skill 时漏改 workflow。
+$skillValidator = Join-Path $root 'tools/quick_validate.py'
+foreach ($skillName in @('wechat-article-api', 'wechat-image-api', 'kevin-xhs-minitool-publisher')) {
+    & python -X utf8 $skillValidator (Join-Path $root $skillName) | Out-Null
+    Assert-True ($LASTEXITCODE -eq 0) "$skillName 元数据校验失败。"
+}
+
 # 运行每个 Skill 自带的零网络回归测试。
 & (Join-Path $root 'wechat-article-api/scripts/Test-WeChatArticleApiOffline.ps1') | Out-Null
 & (Join-Path $root 'wechat-image-api/scripts/Test-WeChatImageApiOffline.ps1') | Out-Null
@@ -77,7 +84,8 @@ try {
     & (Join-Path $root 'tools/Install-Skill.ps1') -Name 'all' -DestinationRoot $installRoot | Out-Null
     Assert-True (Test-Path -LiteralPath (Join-Path $installRoot 'wechat-article-api/SKILL.md') -PathType Leaf) '安装器未复制文章 Skill。'
     Assert-True (Test-Path -LiteralPath (Join-Path $installRoot 'wechat-image-api/SKILL.md') -PathType Leaf) '安装器未复制贴图 Skill。'
-    foreach ($skillName in @('wechat-article-api', 'wechat-image-api')) {
+    Assert-True (Test-Path -LiteralPath (Join-Path $installRoot 'kevin-xhs-minitool-publisher/SKILL.md') -PathType Leaf) '安装器未复制小红书小工具 Skill。'
+    foreach ($skillName in @('wechat-article-api', 'wechat-image-api', 'kevin-xhs-minitool-publisher')) {
         $installed = Get-Item -LiteralPath (Join-Path $installRoot $skillName) -Force
         Assert-True ($installed.LinkType -eq 'Junction') "安装器没有为 $skillName 创建 Junction。"
         Assert-True ([string]::Equals(
@@ -89,6 +97,33 @@ try {
     Assert-ThrowsLike -ScriptBlock {
         & (Join-Path $root 'tools/Install-Skill.ps1') -Name 'wechat-article-api' -DestinationRoot $installRoot | Out-Null
     } -ExpectedFragments @('目标 Skill 已存在', '不会覆盖') -Because '安装器必须拒绝覆盖已有 Skill'
+
+    # 小红书小工具校验器必须放行离线包，并拒绝外链；官方 Skill 下载器必须先拒绝非官方域名，不能发起网络请求。
+    $xhsFixture = Join-Path $temporaryRoot 'xhs-minitool'
+    $xhsAssets = Join-Path $xhsFixture 'assets'
+    New-Item -ItemType Directory -Path $xhsAssets -Force | Out-Null
+    [IO.File]::WriteAllText(
+        (Join-Path $xhsFixture 'index.html'),
+        '<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><link rel="stylesheet" href="./assets/app.css"></head><body><main id="app">离线可用</main><script src="./assets/app.js"></script></body></html>',
+        [Text.UTF8Encoding]::new($false)
+    )
+    [IO.File]::WriteAllText((Join-Path $xhsAssets 'app.css'), 'body { margin: 0; }', [Text.UTF8Encoding]::new($false))
+    [IO.File]::WriteAllText((Join-Path $xhsAssets 'app.js'), 'document.querySelector("#app").dataset.ready = "true";', [Text.UTF8Encoding]::new($false))
+
+    $xhsValidator = Join-Path $root 'kevin-xhs-minitool-publisher/scripts/validate_package.py'
+    $validResult = (& python -X utf8 $xhsValidator $xhsFixture | Out-String) | ConvertFrom-Json
+    Assert-True ($LASTEXITCODE -eq 0 -and $validResult.ok -and [int]$validResult.errors -eq 0) '小红书离线合规样例未通过校验。'
+
+    [IO.File]::WriteAllText((Join-Path $xhsAssets 'app.js'), 'location.href = "https://example.com";', [Text.UTF8Encoding]::new($false))
+    $invalidOutput = & python -X utf8 $xhsValidator $xhsFixture 2>&1 | Out-String
+    $invalidExit = $LASTEXITCODE
+    Assert-True ($invalidExit -eq 1 -and $invalidOutput.Contains('external.url')) '小红书校验器未拒绝站外 URL。'
+
+    $officialFetcher = Join-Path $root 'kevin-xhs-minitool-publisher/scripts/fetch_official_skill.py'
+    $rejectedDownloadRoot = Join-Path $temporaryRoot 'rejected-official-skill'
+    $fetchOutput = & python -X utf8 $officialFetcher 'https://example.com/fake.skill' --output-dir $rejectedDownloadRoot 2>&1 | Out-String
+    $fetchExit = $LASTEXITCODE
+    Assert-True ($fetchExit -eq 1 -and $fetchOutput.Contains('不是小红书 CDN 域名')) '官方 Skill 下载器未拒绝非小红书域名。'
 
     # 公开仓自带的示例生成器必须能从纯文本仓库生成完整素材包。
     $generatedArticlePackage = Join-Path $temporaryRoot 'generated-article'
@@ -187,4 +222,4 @@ Assert-ThrowsLike -ScriptBlock {
     } | Out-Null
 } -ExpectedFragments @('40164', '203.0.113.42', 'IP 白名单', '禁止改走浏览器或 RPA') -Because '40164 指引必须完整'
 
-"离线测试通过：AST、素材契约、留言默认值、账号必填、40164 指引和双模块一致性均符合预期。"
+"离线测试通过：AST、安装器、公众号素材契约与 API 边界、小红书 ZIP 校验与官方 Skill 来源门禁均符合预期。"

@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [ValidateSet('wechat-article-api', 'wechat-image-api', 'all')]
+    [ValidateSet('wechat-article-api', 'wechat-image-api', 'kevin-xhs-minitool-publisher', 'all')]
     [string[]]$Name,
 
     [string]$DestinationRoot
@@ -27,7 +27,7 @@ if ([string]::IsNullOrWhiteSpace($DestinationRoot)) {
 $destinationFull = [IO.Path]::GetFullPath($DestinationRoot)
 
 $selectedNames = if ('all' -in $Name) {
-    @('wechat-article-api', 'wechat-image-api')
+    @('wechat-article-api', 'wechat-image-api', 'kevin-xhs-minitool-publisher')
 }
 else {
     @($Name | Select-Object -Unique)
